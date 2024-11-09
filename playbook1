@@ -1,0 +1,102 @@
+#DESCRIPTION
+#Ansible Playbooks for Apache and Git Installation
+#This repository contains Ansible playbooks to install and configure Apache and Git on Amazon Linux and Ubuntu servers.
+#Installs the latest version of Apache and Git.
+#Starts and enables Apache to run on boot.
+#Supports both Amazon Linux and Ubuntu systems.
+
+# FIRST PLAY1
+- name: Setting up Apache web server on Amazon Linux nodes
+  hosts: Amazon-nodes
+  vars_files:
+    - variable.yml
+  tasks:
+    - name: Upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install the latest version of Apache on the server
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Display the student's name
+      ansible.builtin.debug:
+        msg: "This module will display the name of the student {{ student_name }} on the screen when runs."
+
+    - name: Start Apache service if not started
+      ansible.builtin.service:
+        name: httpd
+        state: started
+
+    - name: Enable Apache service to start on boot
+      ansible.builtin.service:
+        name: httpd
+        enabled: yes
+
+    - name: Copy index.html file from the controller to the nodes at /var/www/html/
+      ansible.builtin.copy:
+        src: /root/web/index.html
+        dest: /var/www/html/
+        mode: '0644'
+      become: true
+      notify:
+        - Restart Apache when needed
+
+  handlers:
+    - name: Restart Apache when needed
+      ansible.builtin.service:
+        name: httpd
+        state: restarted
+    - name: Install Git on Amazon Linux
+      yum:
+        name: git
+        state: latest
+
+# SECOND PLAY2
+- name: Setting up Apache web server on Ubuntu nodes
+  hosts: Ubuntu-Nodes
+  become: true
+  tasks:
+    - name: Update all packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install the latest version of Apache on the server
+      apt:
+        name: apache2
+        state: latest
+
+    - name: Start Apache service if not started
+      ansible.builtin.service:
+        name: apache2
+        state: started
+
+    - name: Enable Apache service to start on boot
+      ansible.builtin.service:
+        name: apache2
+        enabled: yes
+
+    - name: Copy index.html file from the controller to the nodes at /var/www/html/
+      ansible.builtin.copy:
+        src: /root/web/index.html
+        dest: /var/www/html/
+        mode: '0644'
+      notify:
+        - Restart Apache when needed
+
+  handlers:
+    - name: Restart Apache when needed
+      ansible.builtin.service:
+        name: apache2
+        state: restarted
+    - name: Install Git on Ubuntu
+      apt:
+        name: git
+        state: latest
+        update_cache: yes
+       
+
+     
