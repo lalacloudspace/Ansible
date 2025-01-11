@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - echo Installing dependencies...
+      - pip install --upgrade awscli
+
+  build:
+    commands:
+      - echo Building the CloudFormation templates...
+      - aws cloudformation validate-template --template-body file://vpc-template.yml
+      - aws cloudformation validate-template --template-body file://ansible-cluster-template.yml
+
+  post_build:
+    commands:
+      - echo Post-build actions...
+      - echo Templates validated successfully!
+
+artifacts:
+  files:
+    - vpc-template.yml
+    - ansible-cluster-template.yml
