@@ -1,13 +1,7 @@
-#DESCRIPTION
-#Ansible Playbooks for Apache and Git Installation
-#This repository contains Ansible playbooks to install and configure Apache and Git on Amazon Linux and Ubuntu servers.
-#Installs the latest version of Apache and Git.
-#Starts and enables Apache to run on boot.
-#Supports both Amazon Linux and Ubuntu systems.
-
-# FIRST PLAY1
-- name: Setting up Apache web server on Amazon Linux nodes
-  hosts: Amazon-nodes
+---
+- name: Setup Apache on amazon Linux and ubuntu nodes
+  hosts: all
+  become: true
   vars_files:
     - variable.yml
 
