@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Ansible Cluster with 1 Ubuntu controller, 2 Ubuntu nodes, and 2 Amazon Linux nodes in the same region
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: "t2.micro"
+    Description: EC2 instance type.
+    AllowedValues:
+      - t2.micro
+      - t3.small
+      - t3.medium
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair for SSH access.
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: keyName
+
+Mappings:
+  AMIIDMap: 
+    us-east-1:
+      MyAMI1: ami-0e2c8caa4b6378d8c  # Ubuntu AMI for us-east-1
+      MyAMI2: ami-05576a079321f21f8  # Amazon Linux AMI for us-east-1
+    us-east-2:
+      MyAMI1: ami-036841078a4b68e14
+      MyAMI2: ami-0d7ae6a161c5c4239
+    eu-west-2:
+      MyAMI1: ami-05d38da78ce859165
+      MyAMI2: ami-0b4a21432a0c9c1ab
+
+Resources:
+  UbuntuController:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !FindInMap [AMIIDMap, !Ref 'AWS::Region', MyAMI1]  # Using the correct AMI for Ubuntu
+      SecurityGroupIds:
+        - !ImportValue "VPCstack-AnsibleSecurityGroupId"  # Importing the existing Ansible SG
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue "VPCstack-PublicSubnet1Id"  # Importing the existing subnet
+      Tags:
+        - Key: Name
+          Value: Ubuntu-Controller
+
+  UbuntuNode1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !FindInMap [AMIIDMap, !Ref 'AWS::Region', MyAMI1]  # Correct reference to Ubuntu AMI
+      SecurityGroupIds:
+        - !ImportValue "VPCstack-AnsibleSecurityGroupId"  # Importing the existing Ansible SG
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue "VPCstack-PublicSubnet1Id"   # Importing the existing subnet
+      Tags:
+        - Key: Name                                  
+          Value: Ubuntu-Node1
+
+  UbuntuNode2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !FindInMap [AMIIDMap, !Ref 'AWS::Region', MyAMI1]  # Correct reference to Ubuntu AMI
+      SecurityGroupIds:
+        - !ImportValue "VPCstack-AnsibleSecurityGroupId"  # Importing the existing Ansible SG
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue "VPCstack-PublicSubnet1Id"   # Importing the existing subnet
+      Tags:
+        - Key: Name
+          Value: Ubuntu-Node2
+
+  AmazonLinuxNode1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !FindInMap [AMIIDMap, !Ref 'AWS::Region', MyAMI2]  # Using the correct AMI for Amazon Linux
+      SecurityGroupIds:
+        - !ImportValue "VPCstack-AnsibleSecurityGroupId"  # Importing the existing Ansible SG
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue "VPCstack-PublicSubnet2Id"   # Importing the existing subnet
+      Tags:
+        - Key: Name
+          Value: AmazonLinux-Node1
+
+  AmazonLinuxNode2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !FindInMap [AMIIDMap, !Ref 'AWS::Region', MyAMI2]  # Correct reference to Amazon Linux AMI
+      SecurityGroupIds:
+        - !ImportValue "VPCstack-AnsibleSecurityGroupId"  # Importing the existing Ansible SG
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue "VPCstack-PublicSubnet2Id"   # Importing the existing subnet
+      Tags:
+        - Key: Name
+          Value: AmazonLinux-Node2
+
+Outputs:
+  UbuntuControllerPublicIP:
+    Description: 'Public IP of the Ubuntu Controller'
+    Value: !GetAtt UbuntuController.PublicIp
+
+  UbuntuNode1PublicIP:
+    Description: 'Public IP of Ubuntu Node 1'
+    Value: !GetAtt UbuntuNode1.PublicIp
+
+  UbuntuNode2PublicIP:
+    Description: 'Public IP of Ubuntu Node 2'
+    Value: !GetAtt UbuntuNode2.PublicIp
+
+  AmazonLinuxNode1PublicIP:
+    Description: 'Public IP of Amazon Linux Node 1'
+    Value: !GetAtt AmazonLinuxNode1.PublicIp
+
+  AmazonLinuxNode2PublicIP:
+    Description: 'Public IP of Amazon Linux Node 2'
+    Value: !GetAtt AmazonLinuxNode2.PublicIp
